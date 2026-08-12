@@ -1,0 +1,1064 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>好运签 · 今天的好运已为你备好</title>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{
+  font-family:"PingFang SC","Microsoft YaHei","Hiragino Sans GB",sans-serif;
+  background:#FAF7F1;
+  color:#2A2722;
+  --accent:#7C6BAD;
+  --accent-soft:#F0EDF7;
+  transition:background 0.8s ease;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* === Pages === */
+.page{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity 0.5s ease;z-index:1}
+.page.active{opacity:1;pointer-events:auto;z-index:2}
+
+/* === Page: Mood Select (首页) === */
+#page-mood{background:linear-gradient(180deg,#FAF7F1 0%,#F5F0E8 100%);justify-content:center}
+.hero-seal{width:64px;height:64px;border-radius:50%;background:#C25040;display:flex;align-items:center;justify-content:center;margin-bottom:24px;box-shadow:0 4px 20px rgba(194,80,64,0.25);opacity:0;animation:dropIn 0.8s 0.1s cubic-bezier(0.34,1.56,0.64,1) forwards}
+.hero-seal span{color:#FAF7F1;font-family:"STKaiti","KaiTi","楷体",serif;font-size:28px;font-weight:700;line-height:1}
+.hero-title{font-family:"STKaiti","KaiTi","Kaiti SC","楷体",serif;font-size:38px;font-weight:700;letter-spacing:8px;color:#2A2722;margin-bottom:8px;opacity:0;animation:fadeUp 0.8s 0.3s forwards}
+.hero-sub{font-family:"PingFang SC",sans-serif;font-size:14px;color:#9B958A;letter-spacing:3px;margin-bottom:48px;opacity:0;animation:fadeUp 0.8s 0.5s forwards}
+.hero-prompt{font-size:16px;color:#2A2722;font-weight:500;margin-bottom:32px;letter-spacing:2px;opacity:0;animation:fadeUp 0.8s 0.7s forwards}
+.hero-prompt::before{content:'— ';color:#C25040}
+.hero-prompt::after{content:' —';color:#C25040}
+.mood-grid{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;max-width:420px;opacity:0;animation:fadeUp 0.8s 0.9s forwards}
+.mood-btn{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  padding:20px 14px;border-radius:16px;
+  background:#FFFDF8;border:1.5px solid #ECE5DA;
+  transition:all 0.25s ease;cursor:pointer;min-width:66px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.03);
+}
+.mood-btn:hover,.mood-btn:active{transform:translateY(-4px);border-color:var(--accent);box-shadow:0 8px 24px rgba(0,0,0,0.08)}
+.mood-emoji{font-size:32px;line-height:1;transition:transform 0.25s}
+.mood-btn:active .mood-emoji{transform:scale(1.15)}
+.mood-label{font-size:12px;color:#6B655C;letter-spacing:2px;font-family:"PingFang SC",sans-serif}
+.hero-footer{position:absolute;bottom:32px;font-size:12px;color:#B8B0A4;letter-spacing:1px;opacity:0;animation:fadeUp 0.8s 1.2s forwards}
+
+/* === Page: Flip === */
+#page-flip{background:linear-gradient(180deg,#FAF7F1 0%,#F0EBE0 100%)}
+.flip-hint{font-family:"STKaiti","KaiTi","楷体",serif;font-size:16px;color:#6B655C;margin-bottom:40px;letter-spacing:3px;opacity:0;animation:fadeUp 0.5s 0.2s forwards}
+.card-stage{perspective:1200px;width:min(78vw,300px);height:min(110vw,420px);cursor:pointer}
+.card-3d{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform 1s cubic-bezier(0.4,0.0,0.2,1);transform:rotateY(0deg)}
+.card-3d.flipped{transform:rotateY(180deg)}
+.card-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:8px;overflow:hidden}
+.card-back{
+  background:#FFFDF8;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  border:2px solid var(--accent-soft);
+  box-shadow:0 8px 32px rgba(0,0,0,0.06);
+}
+.card-back-icon{font-size:44px;opacity:0.7;filter:drop-shadow(0 0 12px rgba(0,0,0,0.05))}
+.card-back-label{font-family:"STKaiti","KaiTi","楷体",serif;font-size:18px;color:var(--accent);letter-spacing:6px;margin-top:16px;font-weight:600}
+.card-back-hint{position:absolute;bottom:28px;font-size:12px;color:#B8B0A4;letter-spacing:2px}
+.card-back-seal{position:absolute;top:20px;right:20px;width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;opacity:0.8}
+.card-front{
+  transform:rotateY(180deg);
+  background:#FFFDF8;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:36px 28px;
+  border:2px solid var(--accent-soft);
+  box-shadow:0 8px 32px rgba(0,0,0,0.06);
+}
+.card-front::before{content:'';position:absolute;top:16px;left:16px;right:16px;bottom:16px;border:1px solid var(--accent-soft);border-radius:4px;pointer-events:none}
+.card-text{font-family:"STKaiti","KaiTi","Kaiti SC","楷体",serif;font-size:20px;font-weight:400;line-height:2.2;color:#2A2722;text-align:center;position:relative;z-index:1}
+.card-brand{position:absolute;bottom:24px;left:28px;font-family:"STKaiti","KaiTi","楷体",serif;font-size:13px;color:var(--accent);letter-spacing:3px;font-weight:500}
+.card-date{position:absolute;bottom:24px;right:28px;font-family:"PingFang SC",sans-serif;font-size:11px;color:#B8B0A4;letter-spacing:1px}
+
+/* idle float */
+.card-stage:not(.flipping) .card-3d:not(.flipped){animation:floatCard 4s ease-in-out infinite}
+@keyframes floatCard{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+
+/* subtle glow pulse on back */
+.card-stage:not(.flipping) .card-back::after{
+  content:'';position:absolute;inset:0;border-radius:8px;
+  background:radial-gradient(circle at 50% 50%,var(--accent-soft) 0%,transparent 70%);
+  animation:glowPulse 3s ease-in-out infinite;pointer-events:none;
+}
+@keyframes glowPulse{0%,100%{opacity:0.3}50%{opacity:0.6}}
+
+/* === Page: Result === */
+#page-result{background:linear-gradient(180deg,#FAF7F1 0%,#F0EBE0 100%);justify-content:center;padding-top:6vh}
+.result-card{
+  width:min(80vw,310px);min-height:min(95vw,360px);border-radius:8px;
+  background:#FFFDF8;
+  padding:48px 32px 40px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  border:2px solid var(--accent-soft);
+  box-shadow:0 8px 40px rgba(0,0,0,0.06);
+  position:relative;
+  opacity:0;transform:scale(0.92) translateY(10px);animation:cardReveal 0.7s 0.15s cubic-bezier(0.34,1.56,0.64,1) forwards;
+}
+.result-card::before{content:'';position:absolute;top:14px;left:14px;right:14px;bottom:14px;border:1px solid var(--accent-soft);border-radius:4px;pointer-events:none}
+@keyframes cardReveal{to{opacity:1;transform:scale(1) translateY(0)}}
+.result-tag{display:flex;align-items:center;gap:8px;margin-bottom:24px}
+.result-tag-emoji{font-size:16px}
+.result-tag-text{font-family:"PingFang SC",sans-serif;font-size:14px;color:var(--accent);letter-spacing:4px;font-weight:500}
+.result-divider{width:32px;height:2px;background:var(--accent);opacity:0.3;margin-bottom:24px}
+.result-text{font-family:"STKaiti","KaiTi","Kaiti SC","楷体",serif;font-size:20px;font-weight:400;line-height:2.2;color:#2A2722;text-align:center;flex:1;display:flex;align-items:center;justify-content:center;position:relative;z-index:1;max-width:260px}
+.result-footer{display:flex;justify-content:space-between;width:100%;margin-top:24px;position:relative;z-index:1}
+.result-brand{font-family:"STKaiti","KaiTi","楷体",serif;font-size:13px;color:var(--accent);letter-spacing:3px;font-weight:500}
+.result-date{font-family:"PingFang SC",sans-serif;font-size:11px;color:#B8B0A4;letter-spacing:1px}
+.result-actions{display:flex;gap:12px;margin-top:32px;opacity:0;animation:fadeUp 0.5s 0.8s forwards}
+.action-btn{
+  padding:12px 26px;border-radius:24px;font-size:14px;letter-spacing:2px;cursor:pointer;
+  transition:all 0.2s;border:1.5px solid transparent;font-family:"PingFang SC",sans-serif;
+}
+.action-btn.primary{background:var(--accent);color:#FFFDF8;border-color:var(--accent)}
+.action-btn.primary:active{transform:scale(0.96);opacity:0.9}
+.action-btn.secondary{background:transparent;color:#6B655C;border-color:#D8D0C5}
+.action-btn.secondary:active{transform:scale(0.96);background:#F5F0E8}
+.result-tomorrow{font-size:12px;color:#B8B0A4;margin-top:18px;letter-spacing:1px;opacity:0;animation:fadeUp 0.5s 1.1s forwards;font-family:"PingFang SC",sans-serif}
+
+/* === Page: Already Drawn === */
+#page-drawn{background:linear-gradient(180deg,#FAF7F1 0%,#F0EBE0 100%)}
+.drawn-icon{font-size:44px;margin-bottom:20px;opacity:0;animation:fadeUp 0.5s 0.2s forwards}
+.drawn-tag{display:flex;align-items:center;gap:6px;margin-bottom:8px;opacity:0;animation:fadeUp 0.5s 0.3s forwards}
+.drawn-tag-emoji{font-size:14px}
+.drawn-tag-text{font-family:"PingFang SC",sans-serif;font-size:13px;color:var(--accent);letter-spacing:3px}
+.drawn-title{font-family:"STKaiti","KaiTi","楷体",serif;font-size:22px;color:#2A2722;margin-bottom:8px;letter-spacing:3px;opacity:0;animation:fadeUp 0.5s 0.4s forwards}
+.drawn-text{font-size:13px;color:#9B958A;margin-bottom:28px;letter-spacing:1px;opacity:0;animation:fadeUp 0.5s 0.5s forwards}
+.drawn-preview{
+  width:min(76vw,290px);border-radius:8px;padding:32px 26px;
+  background:#FFFDF8;border:2px solid var(--accent-soft);
+  margin-bottom:28px;opacity:0;animation:fadeUp 0.5s 0.6s forwards;
+  box-shadow:0 8px 32px rgba(0,0,0,0.04);position:relative;
+}
+.drawn-preview::before{content:'';position:absolute;top:12px;left:12px;right:12px;bottom:12px;border:1px solid var(--accent-soft);border-radius:4px;pointer-events:none}
+.drawn-preview-text{font-family:"STKaiti","KaiTi","楷体",serif;font-size:17px;line-height:2.2;color:#2A2722;text-align:center;position:relative;z-index:1}
+.drawn-countdown{font-size:13px;color:#9B958A;letter-spacing:1px;margin-bottom:24px;opacity:0;animation:fadeUp 0.5s 0.8s forwards;font-family:"PingFang SC",sans-serif}
+
+/* === Page: History === */
+#page-history{background:#FAF7F1;justify-content:flex-start;padding-top:7vh;overflow-y:auto;align-items:center}
+.history-back{position:absolute;top:20px;left:20px;font-size:14px;color:#6B655C;cursor:pointer;padding:8px 12px;letter-spacing:1px;z-index:10}
+.history-head{text-align:center;margin-bottom:28px;opacity:0;animation:fadeUp 0.4s 0.1s forwards}
+.history-title{font-family:"STKaiti","KaiTi","楷体",serif;font-size:26px;font-weight:600;letter-spacing:6px;color:#2A2722;margin-bottom:6px}
+.history-stats{font-size:13px;color:#9B958A;letter-spacing:1px;font-family:"PingFang SC",sans-serif}
+.history-streak{font-size:13px;color:#C25040;margin-top:4px;letter-spacing:1px;font-family:"PingFang SC",sans-serif}
+.history-list{display:flex;flex-direction:column;gap:10px;width:min(86vw,340px);padding-bottom:60px;opacity:0;animation:fadeUp 0.4s 0.3s forwards}
+.history-item{border-radius:10px;padding:16px 18px;background:#FFFDF8;border:1.5px solid #ECE5DA;cursor:pointer;transition:all 0.2s}
+.history-item:active{background:#F5F0E8;border-color:var(--accent-soft)}
+.history-item-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.history-item-date{font-size:11px;color:#B8B0A4;letter-spacing:1px;font-family:"PingFang SC",sans-serif}
+.history-item-cat{font-size:11px;padding:2px 10px;border-radius:12px;background:var(--accent-soft);color:var(--accent);letter-spacing:1px}
+.history-item-text{font-family:"STKaiti","KaiTi","楷体",serif;font-size:15px;line-height:1.9;color:#2A2722;opacity:0.9}
+.history-empty{text-align:center;color:#B8B0A4;font-size:14px;line-height:2;padding:40px 20px;font-family:"PingFang SC",sans-serif}
+
+/* === Shared === */
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes dropIn{from{opacity:0;transform:translateY(-20px) scale(0.8)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+/* === Top bar === */
+.topbar{position:fixed;top:16px;right:16px;z-index:50;display:flex;gap:8px;opacity:0.6;transition:opacity 0.3s}
+.topbar:hover{opacity:1}
+.topbar-btn{width:36px;height:36px;border-radius:50%;background:#FFFDF8;border:1.5px solid #ECE5DA;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;color:#6B655C;transition:all 0.2s;box-shadow:0 2px 8px rgba(0,0,0,0.03)}
+.topbar-btn:active{transform:scale(0.92)}
+
+/* === Share overlay === */
+.share-overlay{position:fixed;inset:0;background:rgba(42,39,34,0.88);z-index:100;display:none;align-items:center;justify-content:center;padding:24px;flex-direction:column}
+.share-overlay.show{display:flex}
+.share-card-wrap{border-radius:12px;overflow:hidden}
+.share-card-wrap canvas{display:block}
+.share-hint{color:rgba(250,247,241,0.6);font-size:13px;margin-top:20px;letter-spacing:1px}
+.share-close{margin-top:16px;font-size:14px;color:rgba(250,247,241,0.5);cursor:pointer;padding:8px 24px;border:1px solid rgba(250,247,241,0.15);border-radius:20px}
+
+/* === Toast === */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#FFFDF8;color:#2A2722;font-size:14px;padding:10px 24px;border-radius:30px;z-index:200;opacity:0;transition:opacity 0.3s;pointer-events:none;letter-spacing:1px;border:1px solid #ECE5DA;box-shadow:0 4px 16px rgba(0,0,0,0.08);font-family:"PingFang SC",sans-serif}
+.toast.show{opacity:1}
+
+/* === Responsive === */
+@media(max-width:360px){
+  .mood-btn{padding:16px 10px;min-width:58px}
+  .mood-emoji{font-size:28px}
+  .card-text,.result-text{font-size:18px}
+  .hero-title{font-size:34px}
+}
+@media(min-height:700px){
+  .mood-grid{gap:20px}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation-duration:0.01ms !important;transition-duration:0.01ms !important}
+}
+</style>
+</head>
+<body style="--accent:#7C6BAD;--accent-soft:#F0EDF7">
+
+<!-- Top bar -->
+<div class="topbar" id="topbar" style="display:none">
+  <div class="topbar-btn" onclick="openHistory()">签筒</div>
+</div>
+
+<!-- Page: Mood Select (首页) -->
+<div class="page active" id="page-mood">
+  <div class="hero-seal"><span>签</span></div>
+  <div class="hero-title">好运签</div>
+  <div class="hero-sub">今天的好运，已为你备好</div>
+  <div class="hero-prompt">你今天怎么样</div>
+  <div class="mood-grid">
+    <div class="mood-btn" onclick="selectMood('soothe','😮‍💨','安抚')">
+      <div class="mood-emoji">😮‍💨</div>
+      <div class="mood-label">安抚</div>
+    </div>
+    <div class="mood-btn" onclick="selectMood('heal','🥺','治愈')">
+      <div class="mood-emoji">🥺</div>
+      <div class="mood-label">治愈</div>
+    </div>
+    <div class="mood-btn" onclick="selectMood('cheer','😤','打气')">
+      <div class="mood-emoji">😤</div>
+      <div class="mood-label">打气</div>
+    </div>
+    <div class="mood-btn" onclick="selectMood('guide','🤔','指路')">
+      <div class="mood-emoji">🤔</div>
+      <div class="mood-label">指路</div>
+    </div>
+    <div class="mood-btn" onclick="selectMood('luck','🍀','好运')">
+      <div class="mood-emoji">🍀</div>
+      <div class="mood-label">好运</div>
+    </div>
+  </div>
+  <div class="hero-footer">每天一签 · 250条原创好运签文</div>
+</div>
+
+<!-- Page: Flip -->
+<div class="page" id="page-flip">
+  <div class="flip-hint">闭上眼睛，心里默念今天想要的</div>
+  <div class="card-stage" id="cardStage" onclick="flipCard()">
+    <div class="card-3d" id="card3d">
+      <div class="card-face card-back">
+        <div class="card-back-seal" id="cardBackIcon">🌙</div>
+        <div class="card-back-label">好运签</div>
+        <div class="card-back-hint">轻触翻开</div>
+      </div>
+      <div class="card-face card-front">
+        <div class="card-text" id="cardText"></div>
+        <div class="card-brand">好运签</div>
+        <div class="card-date" id="cardDate"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Page: Result -->
+<div class="page" id="page-result">
+  <div class="result-card" id="resultCard">
+    <div class="result-tag">
+      <span class="result-tag-emoji">🌙</span>
+      <span class="result-tag-text">安抚</span>
+    </div>
+    <div class="result-divider"></div>
+    <div class="result-text" id="resultText"></div>
+    <div class="result-footer">
+      <span class="result-brand">好运签</span>
+      <span class="result-date" id="resultDate"></span>
+    </div>
+  </div>
+  <div class="result-actions">
+    <div class="action-btn primary" onclick="saveCard()">保存卡片</div>
+    <div class="action-btn secondary" onclick="goMood()">返回</div>
+  </div>
+  <div class="result-tomorrow" id="tomorrowText"></div>
+</div>
+
+<!-- Page: Already Drawn -->
+<div class="page" id="page-drawn">
+  <div class="drawn-icon">🌙</div>
+  <div class="drawn-tag">
+    <span class="drawn-tag-emoji">🌙</span>
+    <span class="drawn-tag-text">安抚</span>
+  </div>
+  <div class="drawn-title">今天的签已抽过啦</div>
+  <div class="drawn-text">明天会有新的好运等你</div>
+  <div class="drawn-preview" id="drawnPreview">
+    <div class="drawn-preview-text" id="drawnPreviewText"></div>
+  </div>
+  <div class="drawn-countdown" id="drawnCountdown"></div>
+  <div class="action-btn primary" onclick="openHistory()">看看我的签筒</div>
+</div>
+
+<!-- Page: History -->
+<div class="page" id="page-history">
+  <div class="history-back" onclick="goMood()">← 返回</div>
+  <div class="history-head">
+    <div class="history-title">我的签筒</div>
+    <div class="history-stats" id="historyStats">已收集 0 签</div>
+    <div class="history-streak" id="historyStreak"></div>
+  </div>
+  <div class="history-list" id="historyList"></div>
+</div>
+
+<!-- Share overlay -->
+<div class="share-overlay" id="shareOverlay">
+  <div class="share-card-wrap" id="shareCardWrap"></div>
+  <div class="share-hint">长按图片保存到相册</div>
+  <div class="share-close" onclick="closeShare()">关闭</div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+
+// === DATA: 文案池 (250条) ===
+// timeType: none=通用, today=今天, thisWeek=本周(不指定周几), nextWeek=下周, specificDay=指定周几
+// availableDays: 仅 specificDay 需要, 0=周日...6=周六
+
+const TEXTS = [
+// ========== 安抚类 (50条) ==========
+{id:"s01",cat:"soothe",text:"你今天觉得累，不是因为你不够好，是你一个人扛了太多。放下也没关系的。",timeType:"none",tags:["累","扛","放下"]},
+{id:"s02",cat:"soothe",text:"晚睡的人不是不困，是舍不得今天结束。但明天的阳光，值得你早一点点闭眼。",timeType:"none",tags:["晚睡","结束","明天"]},
+{id:"s03",cat:"soothe",text:"你最近掉的那滴眼泪没有浪费。它替你洗掉了一些你看不见的灰。",timeType:"none",tags:["眼泪","洗掉","灰"]},
+{id:"s04",cat:"soothe",text:"今天允许自己什么都不做。你不是机器，你的电量也不是无限的。",timeType:"today",tags:["什么都不做","电量","休息"]},
+{id:"s05",cat:"soothe",text:"你觉得自己在原地踏步，但回头看看，半年前的你已经不在那儿了。",timeType:"none",tags:["原地踏步","回头","进步"]},
+{id:"s06",cat:"soothe",text:"有些事做不到不是你的错。种子的发芽时间不一样，不开花也不是坏种子。",timeType:"none",tags:["做不到","种子","发芽"]},
+{id:"s07",cat:"soothe",text:"你不需要对所有人的情绪负责。你只需要对自己今晚睡得好不好负责。",timeType:"none",tags:["负责","情绪","睡眠"]},
+{id:"s08",cat:"soothe",text:"你不是在退步，你是在蓄力。弓弦往后拉，箭才能飞得远。",timeType:"none",tags:["蓄力","弓","箭"]},
+{id:"s09",cat:"soothe",text:"你今天撑住了，没有崩溃，没有放弃。这件事本身，就值得一个拥抱。",timeType:"today",tags:["撑住","崩溃","拥抱"]},
+{id:"s10",cat:"soothe",text:"别人走得快不代表你慢。你又不是在跑同一条路，急什么呢。",timeType:"none",tags:["快慢","路","急"]},
+{id:"s11",cat:"soothe",text:"你不必时时刻刻都坚强。偶尔碎一碎也没关系，金缮过的碗反而更珍贵。",timeType:"none",tags:["坚强","碎","金缮"]},
+{id:"s12",cat:"soothe",text:"你今天叹的那口气，不是软弱，是你身体在帮你卸下一点重量。",timeType:"today",tags:["叹气","卸","重量"]},
+{id:"s13",cat:"soothe",text:"你不用把每件事都做到满分。60分的你，也已经是很多人心里的100分了。",timeType:"none",tags:["满分","60分","100分"]},
+{id:"s14",cat:"soothe",text:"今天没完成的事，明天还在。但今晚只有一次，别拿来内疚了。",timeType:"today",tags:["没完成","明天","内疚"]},
+{id:"s15",cat:"soothe",text:"你觉得没人在乎你，但其实有人在远处默默看着你，只是你太累了没注意到。",timeType:"none",tags:["在乎","远处","注意"]},
+{id:"s16",cat:"soothe",text:"你不需要解释你为什么累。累就是累，像饿了要吃一样正常。",timeType:"none",tags:["解释","累","正常"]},
+{id:"s17",cat:"soothe",text:"你现在觉得难熬的日子，以后回头会发现，那正是你长出骨头的时候。",timeType:"none",tags:["难熬","回头","骨头"]},
+{id:"s18",cat:"soothe",text:"你今天的沉默不是冷漠，是你的心在整理。给它一点时间。",timeType:"today",tags:["沉默","整理","时间"]},
+{id:"s19",cat:"soothe",text:"你害怕自己不够好，但你知道谁从没嫌过你吗？小时候的你。去抱抱她。",timeType:"none",tags:["不够好","小时候","抱"]},
+{id:"s20",cat:"soothe",text:"你今天已经够努力了。不是每件事都要看到结果才算数，种子在地下的日子也算。",timeType:"today",tags:["努力","种子","地下"]},
+{id:"s21",cat:"soothe",text:"你不是在浪费时间，你是在等自己准备好。等待和浪费不是一回事。",timeType:"none",tags:["浪费","等待","准备"]},
+{id:"s22",cat:"soothe",text:"你觉得全世界都在往前走，只有你在原地。其实不是的，你只是在换方向。",timeType:"none",tags:["原地","方向","换"]},
+{id:"s23",cat:"soothe",text:"你今天想取消的plan，就取消吧。你不必为需要休息而感到抱歉。",timeType:"today",tags:["取消","休息","抱歉"]},
+{id:"s24",cat:"soothe",text:"你不是不够勇敢，你只是受过伤。受过伤还继续走的人，比谁都勇敢。",timeType:"none",tags:["勇敢","受伤","继续"]},
+{id:"s25",cat:"soothe",text:"你反复纠结的那件事，不管选什么，你都能处理好。因为你一直都能。",timeType:"none",tags:["纠结","选","处理"]},
+{id:"s26",cat:"soothe",text:"你觉得自己不够好看、不够瘦、不够优秀，但在某个人的朋友圈封面里，你就是风景。",timeType:"none",tags:["不够","风景","封面"]},
+{id:"s27",cat:"soothe",text:"你今天硬撑过去的那一刻，没看到你在哭，但我看到了。你很了不起。",timeType:"today",tags:["硬撑","哭","了不起"]},
+{id:"s28",cat:"soothe",text:"你不需要把所有委屈都咽下去。偶尔吐出来，天不会塌。",timeType:"none",tags:["委屈","咽","吐"]},
+{id:"s29",cat:"soothe",text:"你不是变冷了，你是学会保护自己了。这不是退步，是成长。",timeType:"none",tags:["冷","保护","成长"]},
+{id:"s30",cat:"soothe",text:"你今天对镜子里的自己笑一下吧，哪怕很勉强。她今天也挺辛苦的。",timeType:"today",tags:["镜子","笑","辛苦"]},
+{id:"s31",cat:"soothe",text:"觉得撑不下去的时候就数呼吸。一呼一吸之间，你已经又撑过了一轮。",timeType:"none",tags:["呼吸","撑","一轮"]},
+{id:"s32",cat:"soothe",text:"你不是一个人在扛。只是帮你的人还没到，你在等的路上先歇歇。",timeType:"none",tags:["一个人","扛","等"]},
+{id:"s33",cat:"soothe",text:"你今天的疲惫是真实的，但你明天会好一点的能力也是真实的。",timeType:"today",tags:["疲惫","明天","好"]},
+{id:"s34",cat:"soothe",text:"你觉得被丢下了，但其实有些人走的时候，顺手帮你搬走了路上的石头。",timeType:"none",tags:["丢下","走","石头"]},
+{id:"s35",cat:"soothe",text:"你不需要时时刻刻都在变好。允许自己有原地休息的一周，甚至一个月。",timeType:"none",tags:["变好","休息","一周"]},
+{id:"s36",cat:"soothe",text:"你今天不想说话就不说。沉默也是一种回答，懂你的人自然懂。",timeType:"today",tags:["不说话","沉默","懂"]},
+{id:"s37",cat:"soothe",text:"你不是没有方向，你只是走了太多的弯路。但弯路上也有风景，不是吗。",timeType:"none",tags:["方向","弯路","风景"]},
+{id:"s38",cat:"soothe",text:"你觉得自己不够好这件事，不是事实，只是累了的时候大脑骗你的。",timeType:"none",tags:["不够好","事实","骗"]},
+{id:"s39",cat:"soothe",text:"今天什么都不想干也没关系。你存在本身就够了，不需要每天产出什么。",timeType:"today",tags:["不干","存在","产出"]},
+{id:"s40",cat:"soothe",text:"你不需要让所有人满意。你只需要让明天的自己不讨厌今天的自己就够了。",timeType:"none",tags:["满意","明天","讨厌"]},
+{id:"s41",cat:"soothe",text:"你觉得孤独，但孤独不是因为你不好，是因为你和周围还不够合拍。换个人群就好了。",timeType:"none",tags:["孤独","合拍","换"]},
+{id:"s42",cat:"soothe",text:"你今天流的泪，其实在帮你排毒。身体比你更爱你，它不会让你白哭的。",timeType:"today",tags:["泪","排毒","身体"]},
+{id:"s43",cat:"soothe",text:"你不是在原地踏步，你是在给后面的冲刺攒脚劲。蹲下才能跳得更高。",timeType:"none",tags:["踏步","蹲","跳"]},
+{id:"s44",cat:"soothe",text:"你最近总是觉得累，可能是因为你在长大。蜕壳的蝉也很累，但它在变强。",timeType:"none",tags:["累","长大","蜕壳"]},
+{id:"s45",cat:"soothe",text:"你不需要每天都元气满满。偶尔低电量运行，也是你的一部分。",timeType:"none",tags:["元气","低电量","一部分"]},
+{id:"s46",cat:"soothe",text:"你觉得自己什么都没有，其实你有一个明天。有人连明天都没有了。",timeType:"none",tags:["什么都没有","明天","拥有"]},
+{id:"s47",cat:"soothe",text:"今天可以早点关灯。不是所有夜晚都要拿来思考人生的。",timeType:"today",tags:["关灯","夜晚","思考"]},
+{id:"s48",cat:"soothe",text:"你不是在浪费天赋，你只是还没找到用它的地方。找地方需要时间。",timeType:"none",tags:["天赋","找","时间"]},
+{id:"s49",cat:"soothe",text:"你害怕被遗忘，但你做过的好事、说过的好话，都种在了别人心里。它们记得。",timeType:"none",tags:["遗忘","好事","记得"]},
+{id:"s50",cat:"soothe",text:"你今天活下来了。对于某些人来说，这就已经是英雄主义了。别小看这件事。",timeType:"today",tags:["活下来","英雄","小看"]},
+
+// ========== 治愈类 (50条) ==========
+{id:"h01",cat:"heal",text:"你不用原谅所有人。有些伤疤是勋章，留着它没关系。",timeType:"none",tags:["原谅","伤疤","勋章"]},
+{id:"h02",cat:"heal",text:"你总是在照顾别人的感受，今天轮到你了。对自己温柔一点。",timeType:"today",tags:["照顾","轮到","温柔"]},
+{id:"h03",cat:"heal",text:"你藏起来的那些委屈，我都看到了。它们不丢人，它们说明你一直在努力做好人。",timeType:"none",tags:["委屈","藏","好人"]},
+{id:"h04",cat:"heal",text:"心情不好的时候不用硬撑笑脸。你的疲惫是真实的，不必为它道歉。",timeType:"none",tags:["硬撑","笑脸","道歉"]},
+{id:"h05",cat:"heal",text:"你不是太敏感。是你感受得比别人多，所以疼得也多。但快乐的时候也更多。",timeType:"none",tags:["敏感","感受","快乐"]},
+{id:"h06",cat:"heal",text:"今天的风很轻。如果你愿意，可以什么都不想，就站一会儿。",timeType:"today",tags:["风","不想","站"]},
+{id:"h07",cat:"heal",text:"你以为自己不被爱，但你养的绿萝活了三个月，你说它不是在回应你吗？",timeType:"none",tags:["不被爱","绿萝","回应"]},
+{id:"h08",cat:"heal",text:"你总是说没事没事，但我知道不是所有事都没事。今天可以不那么坚强。",timeType:"today",tags:["没事","坚强","知道"]},
+{id:"h09",cat:"heal",text:"你害怕变成一个人的样子，但你独处时候的样子，其实很安静很美。",timeType:"none",tags:["一个人","独处","美"]},
+{id:"h10",cat:"heal",text:"你心里有一块碎了的地方，那不是裂缝，那是光照进来的入口。",timeType:"none",tags:["碎","裂缝","光"]},
+{id:"h11",cat:"heal",text:"你觉得自己不值得被好好对待，但你不应该用别人的失误来惩罚自己的判断。",timeType:"none",tags:["不值得","失误","惩罚"]},
+{id:"h12",cat:"heal",text:"今天给自己倒一杯热水，双手捧着，感受温度传到掌心。你需要这点温暖。",timeType:"today",tags:["热水","掌心","温暖"]},
+{id:"h13",cat:"heal",text:"你以为自己没有力气了，但你现在还在看这句话，就说明你的心没有放弃。",timeType:"none",tags:["力气","放弃","看"]},
+{id:"h14",cat:"heal",text:"你总是把好的给别人，差自己扛。今天把最好的一块留给自己吧。",timeType:"today",tags:["给别人","扛","留"]},
+{id:"h15",cat:"heal",text:"你心里那个小小声说话的自己，不是懦弱，是你最柔软也最真实的部分。",timeType:"none",tags:["小声","柔软","真实"]},
+{id:"h16",cat:"heal",text:"你觉得世界很冷，但其实你看到的第一朵路边野花，就是世界对你笑了一次。",timeType:"none",tags:["冷","野花","笑"]},
+{id:"h17",cat:"heal",text:"你不需要把所有伤口都展示给别人看。自己舔舔也是愈合的一种方式。",timeType:"none",tags:["伤口","展示","舔"]},
+{id:"h18",cat:"heal",text:"你今天遇到的不开心，就像一片落叶。踏过去就好，不用带走的。",timeType:"today",tags:["不开心","落叶","踏"]},
+{id:"h19",cat:"heal",text:"你以为自己在硬撑，其实你的身体和心一直在偷偷帮你分担。它们很爱你的。",timeType:"none",tags:["硬撑","分担","爱"]},
+{id:"h20",cat:"heal",text:"你觉得没人懂你，但在这个世界的某个角落，有人正在经历跟你一样的夜晚。你不孤单。",timeType:"none",tags:["没人懂","角落","不孤单"]},
+{id:"h21",cat:"heal",text:"你今天可以哭。哭不是软弱，是身体在帮你减压。哭完眼睛会亮亮的。",timeType:"today",tags:["哭","减压","亮"]},
+{id:"h22",cat:"heal",text:"你不需要否定过去的自己。她当时已经用尽全力了，你不能事后嫌她不够好。",timeType:"none",tags:["否定","过去","尽全力"]},
+{id:"h23",cat:"heal",text:"你觉得自己的好没人看见，但好种子不需要被看见也能发芽。它会找到自己的土。",timeType:"none",tags:["没人看见","种子","土"]},
+{id:"h24",cat:"heal",text:"你今天路过的那棵树，它不知道你心情不好，但它还是给了你一片阴凉。这算一种善意。",timeType:"today",tags:["树","阴凉","善意"]},
+{id:"h25",cat:"heal",text:"你不是在原地等一个人，你是在等自己准备好。那个人来之前你得先到。",timeType:"none",tags:["等","准备","先到"]},
+{id:"h26",cat:"heal",text:"你觉得自己不够特别，但你笑起来的时候，世界上没有第二个人能复制那个弧度。",timeType:"none",tags:["不特别","笑","弧度"]},
+{id:"h27",cat:"heal",text:"你藏起来的那些脆弱，不是你的污点，是你的年轮。没有它们你长不到现在。",timeType:"none",tags:["脆弱","年轮","长"]},
+{id:"h28",cat:"heal",text:"今天允许自己做一个普通的人。不精彩的今天也是今天，也值得过。",timeType:"today",tags:["普通","精彩","值得"]},
+{id:"h29",cat:"heal",text:"你以为自己在逞强，但知道你事情的人，心里都在替你心疼。你有没有心疼过自己？",timeType:"none",tags:["逞强","心疼","自己"]},
+{id:"h30",cat:"heal",text:"你不需要证明自己值得被爱。你呼吸着，你存在着，这件事本身就已经够了。",timeType:"none",tags:["证明","值得","呼吸"]},
+{id:"h31",cat:"heal",text:"你今天觉得世界灰灰的，可能只是该喝水了。先去喝口水再继续难过吧。",timeType:"today",tags:["灰","喝水","难过"]},
+{id:"h32",cat:"heal",text:"你以为自己没被在意，但你每次缺席都有人注意到了。只是他们没说。",timeType:"none",tags:["没在意","缺席","注意到"]},
+{id:"h33",cat:"heal",text:'你不用把所有的"我没事"都变成"我很好"。有时候"我还活着"就足够了。',timeType:"none",tags:["没事","很好","活着"]},
+{id:"h34",cat:"heal",text:"你觉得失去的东西回不来了，但你腾出来的那个位置，会迎来更好的东西。",timeType:"none",tags:["失去","腾","更好"]},
+{id:"h35",cat:"heal",text:"你今天不必做任何决定。有些日子就是用来发呆的，明天再说也来得及。",timeType:"today",tags:["决定","发呆","明天"]},
+{id:"h36",cat:"heal",text:"你总是怕麻烦别人，但你想想，你帮别人的时候有没有嫌烦过？给别人一次被你需要的快乐吧。",timeType:"none",tags:["麻烦","帮","需要"]},
+{id:"h37",cat:"heal",text:"你觉得世界很大自己很小，但蝴蝶扇一下翅膀就能引起风暴。你不小的。",timeType:"none",tags:["大","小","蝴蝶"]},
+{id:"h38",cat:"heal",text:"你今天皱眉的次数有点多了。试着松一下眉心，你的身体会谢谢你的。",timeType:"today",tags:["皱眉","松","眉心"]},
+{id:"h39",cat:"heal",text:"你以为自己在迷失，其实你只是在走一条没有路标的路。走的人多了就成了路。",timeType:"none",tags:["迷失","路标","路"]},
+{id:"h40",cat:"heal",text:"你不需要治愈好所有伤口才能开始生活。带着伤往前走，也是一种勇敢。",timeType:"none",tags:["治愈","伤口","勇敢"]},
+{id:"h41",cat:"heal",text:"你觉得自己的努力没有回报，但有些回报在路上走得慢一点。它是赶着来的。",timeType:"none",tags:["回报","路上","赶"]},
+{id:"h42",cat:"heal",text:"今天可以吃点好的。不是因为今天特别，是因为你值得每天都吃点好的。",timeType:"today",tags:["吃好","值得","每天"]},
+{id:"h43",cat:"heal",text:"你总是在深夜emo，但你有没有想过，深夜的你才是最真实的你。她需要被你抱一抱。",timeType:"none",tags:["深夜","真实","抱"]},
+{id:"h44",cat:"heal",text:"你以为自己不配拥有好东西，但好东西不是靠配不配，是靠你伸手去拿。",timeType:"none",tags:["不配","好东西","伸手"]},
+{id:"h45",cat:"heal",text:"你今天对别人笑了几次，也对自己笑一次吧。你也需要被你自己温柔以待。",timeType:"today",tags:["笑","自己","温柔"]},
+{id:"h46",cat:"heal",text:"你觉得日子重复而乏味，但每天太阳都是新的。今天的光和昨天的不一样。",timeType:"none",tags:["重复","太阳","新"]},
+{id:"h47",cat:"heal",text:"你不需要等别人来给你安全感。你给自己的，才是别人拿不走的。",timeType:"none",tags:["安全感","给","拿不走"]},
+{id:"h48",cat:"heal",text:"你觉得没有人在听你说话，但你说的每一句好话，都被空气记住了。它会传出去的。",timeType:"none",tags:["没人听","空气","传"]},
+{id:"h49",cat:"heal",text:"今天可以早点上床。不是要你早睡，是让你多躺一会儿。你的身体需要被躺平。",timeType:"today",tags:["上床","早睡","躺"]},
+{id:"h50",cat:"heal",text:"你以为自己在泥里，但莲花也长在泥里。泥不是你的敌人，是你的培养基。",timeType:"none",tags:["泥","莲花","培养"]},
+
+// ========== 打气类 (50条) ==========
+{id:"c01",cat:"cheer",text:"你不需要证明给所有人看。真正重要的人，从来没要求过你证明什么。",timeType:"none",tags:["证明","重要","要求"]},
+{id:"c02",cat:"cheer",text:"你现在走的路很难，但难的路才通向值得去的地方。你选对了。",timeType:"none",tags:["难","路","值得"]},
+{id:"c03",cat:"cheer",text:"他们看不到你的努力，但你的努力不会白费。它正在你看不见的地方长根。",timeType:"none",tags:["看不到","努力","长根"]},
+{id:"c04",cat:"cheer",text:"今天会有人因为你的存在而觉得幸运。你只是还不知道是谁。",timeType:"today",tags:["存在","幸运","谁"]},
+{id:"c05",cat:"cheer",text:"你犹豫的那件事，做就对了。怕的从来不是结果，是你迟迟不敢开始。",timeType:"none",tags:["犹豫","怕","开始"]},
+{id:"c06",cat:"cheer",text:"你比昨天又强了一点点。虽然你看不见，但你的骨头知道。",timeType:"none",tags:["昨天","强","骨头"]},
+{id:"c07",cat:"cheer",text:"他们说你不行，但说这话的人，从来没走到过你现在站的位置。",timeType:"none",tags:["不行","说","位置"]},
+{id:"c08",cat:"cheer",text:"你现在的状态像竹子，前四年只长三厘米，第五年开始每天长三十厘米。你在第四年。",timeType:"none",tags:["竹子","厘米","第四年"]},
+{id:"c09",cat:"cheer",text:"你不需要赢过所有人，你只需要赢过昨天的自己。她不难超越的，因为她也想让你赢。",timeType:"none",tags:["赢","昨天","超越"]},
+{id:"c10",cat:"cheer",text:"你现在觉得被否定，但被否定不是因为你差，是因为你走到了没人否定过的高度。",timeType:"none",tags:["否定","高度","差"]},
+{id:"c11",cat:"cheer",text:"你害怕的失败，其实只是成功在试你的诚意。你是认真的，它就会来。",timeType:"none",tags:["失败","诚意","来"]},
+{id:"c12",cat:"cheer",text:"你今天的咬牙坚持，不会被辜负的。命运可能晚到，但它不瞎。",timeType:"today",tags:["咬牙","坚持","命运"]},
+{id:"c13",cat:"cheer",text:"你不是没有天赋，你只是还没找到需要你的那个赛道。找赛道比跑赛道更重要。",timeType:"none",tags:["天赋","赛道","找"]},
+{id:"c14",cat:"cheer",text:"你觉得自己被低估了，那就让低估成为你的燃料。安静地烧，猛烈地飞。",timeType:"none",tags:["低估","燃料","飞"]},
+{id:"c15",cat:"cheer",text:"你现在做的那件没人理解的事，以后会是你最骄傲的决定。信我。",timeType:"none",tags:["没人理解","骄傲","决定"]},
+{id:"c16",cat:"cheer",text:"你不需要等待时机成熟。时机永远不会自己成熟，是你走出去了它才熟。",timeType:"none",tags:["等待","时机","走出去"]},
+{id:"c17",cat:"cheer",text:"你犹豫要不要发出去的那条消息，发吧。不发的遗憾比发了的尴尬更重。",timeType:"none",tags:["发消息","遗憾","尴尬"]},
+{id:"c18",cat:"cheer",text:"你害怕自己不够格，但你已经被放在这个位置上了。说明有人看到了你。",timeType:"none",tags:["不够格","位置","看到"]},
+{id:"c19",cat:"cheer",text:"你觉得别人都在发光，只有你在阴影里。但阴影里的人最适合观察，你下一个出场会惊艳。",timeType:"none",tags:["发光","阴影","出场"]},
+{id:"c20",cat:"cheer",text:"你今天的疲惫是勋章，不是负担。你把它戴上了，就别嫌它沉。",timeType:"today",tags:["疲惫","勋章","沉"]},
+{id:"c21",cat:"cheer",text:"你不是在浪费青春，你是在用它换一个更硬的自己。这买卖不亏。",timeType:"none",tags:["浪费","青春","换"]},
+{id:"c22",cat:"cheer",text:"你现在觉得什么都没有，但你有一双手、一颗心和一个明天。原始人的起步比你还少。",timeType:"none",tags:["什么都没有","手","明天"]},
+{id:"c23",cat:"cheer",text:"你不需要所有人都喜欢你。你只需要几个真心的，和一个不放弃的自己。",timeType:"none",tags:["喜欢","真心","不放弃"]},
+{id:"c24",cat:"cheer",text:"你觉得自己走错了路，但地球是圆的，走错了也能到。只要你不停下。",timeType:"none",tags:["错","圆","不停"]},
+{id:"c25",cat:"cheer",text:"你害怕来不及，但你的时区和别人不一样。有人在25岁绽放，有人在45岁开花。",timeType:"none",tags:["来不及","时区","开花"]},
+{id:"c26",cat:"cheer",text:"你今天不想动了也得动一下。不是因为今天重要，是因为你怕的不是动作，是开始。",timeType:"today",tags:["不动","开始","动作"]},
+{id:"c27",cat:"cheer",text:"你觉得天花板很低，但天花板是用来打破的，不是用来低头的。",timeType:"none",tags:["天花板","打破","低头"]},
+{id:"c28",cat:"cheer",text:"你不是没有资源，你是有你自己。有些人连这个都没有。",timeType:"none",tags:["资源","自己","没有"]},
+{id:"c29",cat:"cheer",text:"你想了太多但做了太少。今天做一个小动作就够了，哪怕只是打开文档。",timeType:"today",tags:["想","做","小动作"]},
+{id:"c30",cat:"cheer",text:"你觉得被时代抛下了，但时代是螺旋上升的。你在下面不代表你在退，你在打底座。",timeType:"none",tags:["抛下","螺旋","底座"]},
+{id:"c31",cat:"cheer",text:"你不需要等别人认可了再行动。认可是在行动之后来的，不是之前。",timeType:"none",tags:["认可","行动","之后"]},
+{id:"c32",cat:"cheer",text:"你今天的每一个选择都在写故事。有些篇章写得不好没关系，后面还有翻盘的章节。",timeType:"today",tags:["选择","故事","翻盘"]},
+{id:"c33",cat:"cheer",text:"你觉得被比较很烦，但能被拿来比较说明你在同一个赛道上了。你已经赢了很多人。",timeType:"none",tags:["比较","赛道","赢"]},
+{id:"c34",cat:"cheer",text:"你不需要害怕被看到。被看到是好事，说明你身上的光已经藏不住了。",timeType:"none",tags:["害怕","看到","光"]},
+{id:"c35",cat:"cheer",text:"你觉得自己没有竞争力，但你的独特经历是任何人复制不了的。那就是你的护城河。",timeType:"none",tags:["竞争力","经历","护城河"]},
+{id:"c36",cat:"cheer",text:"你今天想要放弃的时候，再数三秒。三秒过后你可能会发现还撑得住。",timeType:"today",tags:["放弃","三秒","撑"]},
+{id:"c37",cat:"cheer",text:"你觉得别人起点高，但你忘了他们也有他们的天花板。你已经从地下室爬到一楼了。",timeType:"none",tags:["起点","天花板","爬"]},
+{id:"c38",cat:"cheer",text:"你不需要一个完美计划才开始。乱开局也比不开局强，路上修方向就行。",timeType:"none",tags:["完美","计划","路上"]},
+{id:"c39",cat:"cheer",text:"你害怕被拒绝，但被拒绝是筛选。拒掉你的不是你的路，真正属于你的路不会拒你。",timeType:"none",tags:["拒绝","筛选","路"]},
+{id:"c40",cat:"cheer",text:"你觉得自己在假努力，但假努力也是努力。先把量堆上，质会自己来找你的。",timeType:"none",tags:["假努力","量","质"]},
+{id:"c41",cat:"cheer",text:"你今天没崩就赢了。有的人今天崩了，你没崩，你赢了一天。明天继续。",timeType:"today",tags:["崩","赢","明天"]},
+{id:"c42",cat:"cheer",text:"你觉得前路迷茫，但雾里开车也能到终点。不需要看清全程，只需要看清前面十米。",timeType:"none",tags:["迷茫","雾","十米"]},
+{id:"c43",cat:"cheer",text:"你不需要回头确认走了多远。脚印会留在后面，你只需要往前看。",timeType:"none",tags:["回头","脚印","往前"]},
+{id:"c44",cat:"cheer",text:"你觉得自己的努力像水滴石穿看不到效果，但水滴从第二天就在石面上留痕了。只是你没俯身看。",timeType:"none",tags:["水滴","石穿","痕"]},
+{id:"c45",cat:"cheer",text:'你今天可以小声跟自己说一句"我在变强"。不用很大声，你的骨头听得见。',timeType:"today",tags:["变强","骨头","听得见"]},
+{id:"c46",cat:"cheer",text:"你不是在赌博，你是在投资自己。投资的回报周期更长，但它更稳。",timeType:"none",tags:["赌","投资","回报"]},
+{id:"c47",cat:"cheer",text:"你觉得别人都好优秀，但他们在你看不到的地方也在偷偷崩溃。你看到的都是高光剪辑。",timeType:"none",tags:["优秀","崩溃","剪辑"]},
+{id:"c48",cat:"cheer",text:"你不需要一步到位。半步半步走也行，只要方向是对的，慢就是快。",timeType:"none",tags:["一步","半步","快"]},
+{id:"c49",cat:"cheer",text:"你今天害怕做错选择，但做错也比不做好。不做的遗憾是永久的，做错的后悔是暂时的。",timeType:"today",tags:["做错","不做","遗憾"]},
+{id:"c50",cat:"cheer",text:"你觉得自己的故事不够精彩，但精彩的故事都需要一个不够精彩的开始。你就是序章。",timeType:"none",tags:["精彩","开始","序章"]},
+
+// ========== 指路类 (50条) ==========
+{id:"g01",cat:"guide",text:"你纠结选哪条路，其实两条都通向同一个你。只是风景不同，没有对错。",timeType:"none",tags:["纠结","路","风景"]},
+{id:"g02",cat:"guide",text:"如果不知道选什么，就选让你害怕但心跳加快的那个。那通常是正确答案。",timeType:"none",tags:["害怕","心跳","正确"]},
+{id:"g03",cat:"guide",text:"你等的那个答案，不是没来，是还在路上。它走得很慢，但它在走。",timeType:"none",tags:["答案","路上","走"]},
+{id:"g04",cat:"guide",text:"你反复想起的那件事，就是心里已经选好的答案。你只是在等自己接受。",timeType:"none",tags:["反复","答案","接受"]},
+{id:"g05",cat:"guide",text:"没有白走的路。绕远的那些，都是在教会你一些直路上学不到的东西。",timeType:"none",tags:["白走","绕远","教"]},
+{id:"g06",cat:"guide",text:"如果今天什么都想不清楚，就先睡觉。明天醒来的你，比现在清醒。",timeType:"today",tags:["想不清","睡觉","清醒"]},
+{id:"g07",cat:"guide",text:"你现在觉得卡住了，但卡住是转弯的前奏。河流到了弯道也会慢下来。",timeType:"none",tags:["卡住","转弯","河流"]},
+{id:"g08",cat:"guide",text:"你不需要看清整条路才迈步。看清前面的三米就够了，走过去自然能看到下三米。",timeType:"none",tags:["看清","三米","走"]},
+{id:"g09",cat:"guide",text:"如果在两个选择之间犹豫，说明它们差不多。那随便选一个就好，走起来再说。",timeType:"none",tags:["犹豫","差不多","选"]},
+{id:"g10",cat:"guide",text:"你觉得自己在等一个信号，但信号就是你开始做了以后才出现的。不是先有信号。",timeType:"none",tags:["信号","做","先有"]},
+{id:"g11",cat:"guide",text:"如果你反复梦见同一件事，那不是潜意识在折磨你，是它想让你看见你自己。",timeType:"none",tags:["梦见","潜意识","看见"]},
+{id:"g12",cat:"guide",text:"你等的那个人不会来了，但你不是在白等，你是在等的过程中长出了翅膀。往后自己飞。",timeType:"none",tags:["等","翅膀","飞"]},
+{id:"g13",cat:"guide",text:"如果你不知道自己想要什么，先排除不想要的。剩下的就是可能想要的。",timeType:"none",tags:["想要","排除","可能"]},
+{id:"g14",cat:"guide",text:"你觉得方向错了，但错了也是信息。至少你知道了这条路不通，下条就不试了。",timeType:"none",tags:["错","信息","不通"]},
+{id:"g15",cat:"guide",text:"你现在停下了不代表放弃了。有时候停下来看看地图，比闷头跑更高效。",timeType:"none",tags:["停","放弃","地图"]},
+{id:"g16",cat:"guide",text:"如果你最近常想起过去的事，不是你走不出来，是你到了回头看才看得清的距离。",timeType:"none",tags:["过去","回头看","距离"]},
+{id:"g17",cat:"guide",text:"你害怕选错，但错和对你不是对立的。有些路走到头才知道它是对是错，走到一半判断不了。",timeType:"none",tags:["错","对","走到头"]},
+{id:"g18",cat:"guide",text:"如果你觉得该离开了，那就是该离开了。你的直觉比你以为的准。",timeType:"none",tags:["离开","直觉","准"]},
+{id:"g19",cat:"guide",text:"你觉得自己一直在准备但从没出发，可能准备本身就是你在逃避的借口。出发吧。",timeType:"none",tags:["准备","出发","借口"]},
+{id:"g20",cat:"guide",text:"如果你反复问别人同一件事，其实你心里有答案了，只是想要一个人替你说出来。",timeType:"none",tags:["问","答案","说出来"]},
+{id:"g21",cat:"guide",text:"你纠结的不是选什么，是怕选了以后后悔。但后悔也是一种体验，不亏。",timeType:"none",tags:["纠结","后悔","体验"]},
+{id:"g22",cat:"guide",text:"如果你现在觉得人生没有方向，可能方向不是一个点，是你走着走着长出来的。",timeType:"none",tags:["方向","走","长出来"]},
+{id:"g23",cat:"guide",text:"你等的外部条件永远不会全部成熟。条件是你走着走着自己创造的。",timeType:"none",tags:["条件","等","创造"]},
+{id:"g24",cat:"guide",text:"你觉得在跟世界较劲，其实你在跟自己较劲。世界没那么在意你选什么，是你自己太较真了。",timeType:"none",tags:["较劲","世界","自己"]},
+{id:"g25",cat:"guide",text:"如果你不知道该做什么，就先把自己照顾好。方向会来找你的，在你状态好的时候。",timeType:"none",tags:["做什么","照顾","方向"]},
+{id:"g26",cat:"guide",text:"你反复纠结的那段关系，其实你纠结的不是对方好不好，是你舍不舍得放手。",timeType:"none",tags:["纠结","关系","放手"]},
+{id:"g27",cat:"guide",text:"如果你觉得自己不属于现在的圈子，那就是不属于。离开不叫背叛，叫找到自己。",timeType:"none",tags:["圈子","离开","找到"]},
+{id:"g28",cat:"guide",text:"你等一个转机，但转机不是一个事件，是一个你突然想通了的瞬间。那个瞬间你自己造的。",timeType:"none",tags:["转机","想通","造"]},
+{id:"g29",cat:"guide",text:"你觉得自己在原地转圈，但如果螺旋上升也是转圈呢。你只是看不到高度差。",timeType:"none",tags:["转圈","螺旋","高度"]},
+{id:"g30",cat:"guide",text:"如果你总在看别人走的路，说明你还没找到自己的。找到的那一刻就不再看了。",timeType:"none",tags:["看别人","找","不看"]},
+{id:"g31",cat:"guide",text:"你害怕做了选择就回不了头，但地球是圆的，怎么走都能到的。只是时间问题。",timeType:"none",tags:["回不了头","圆","时间"]},
+{id:"g32",cat:"guide",text:"如果你觉得现在的生活不对，不对的感觉本身就是路标。它在指引你调整方向。",timeType:"none",tags:["不对","路标","调整"]},
+{id:"g33",cat:"guide",text:"你在两个城市之间犹豫，其实城市不重要，重要的是在哪个城市里你能成为自己。",timeType:"none",tags:["城市","犹豫","成为"]},
+{id:"g34",cat:"guide",text:"如果你反复想同一件事想不通，那就放下。想不通的问题过一阵再来看就通了，因为你在变。",timeType:"none",tags:["想不通","放下","变"]},
+{id:"g35",cat:"guide",text:"你觉得在等一个人告诉你答案，但答案已经在你的第一直觉里了。别用思考盖过它。",timeType:"none",tags:["答案","直觉","思考"]},
+{id:"g36",cat:"guide",text:"如果你现在不敢做决定，就先不决定。缓一缓不是逃避，是在等尘埃落定。",timeType:"none",tags:["不敢","缓","尘埃"]},
+{id:"g37",cat:"guide",text:"你以为自己在逃避，但有时候退一步是为了看清全景。离太近什么都看不到。",timeType:"none",tags:["逃避","退一步","全景"]},
+{id:"g38",cat:"guide",text:"你纠结要不要换一条路，但你先问问自己：现在的路上你还有好奇心吗？没有就该换了。",timeType:"none",tags:["换","好奇心","该换"]},
+{id:"g39",cat:"guide",text:"如果你总觉得错过了什么，错过的不会回来，但你现在手里握着的不会比那个差。",timeType:"none",tags:["错过","回来","手里"]},
+{id:"g40",cat:"guide",text:"你害怕自己的选择会让别人失望，但你的人生不是用来让别人不失望的。",timeType:"none",tags:["失望","人生","别人"]},
+{id:"g41",cat:"guide",text:"如果你觉得卡在中间不上不下，中间也是一个位置。中间意味着你两个方向都能走。",timeType:"none",tags:["中间","卡","方向"]},
+{id:"g42",cat:"guide",text:"你以为自己在找答案，其实你在找一个你愿意接受的理由。如果你不愿意，再好的答案也没用。",timeType:"none",tags:["答案","接受","理由"]},
+{id:"g43",cat:"guide",text:"你反复回忆过去的某个选择，想着如果当初选了另一个。但另一个你也不会满足的。人的本性。",timeType:"none",tags:["回忆","选择","满足"]},
+{id:"g44",cat:"guide",text:"如果你在一个地方待了太久都没变化，那个地方可能已经教完你了。该上路了。",timeType:"none",tags:["太久","教完","上路"]},
+{id:"g45",cat:"guide",text:"你害怕不确定的未来，但确定的未来有什么意思呢？不确定才是惊喜的来源。",timeType:"none",tags:["不确定","未来","惊喜"]},
+{id:"g46",cat:"guide",text:"如果你今天什么都不想决定，就不决定。不是每一天都需要做选择的，有些天就是用来过渡的。",timeType:"today",tags:["不决定","过渡","选择"]},
+{id:"g47",cat:"guide",text:"你觉得自己走得慢，但走得慢意味着看得清。赶路的人错过风景，你不亏。",timeType:"none",tags:["慢","看清","风景"]},
+{id:"g48",cat:"guide",text:"如果你反复犹豫同一件事超过两周，说明理性的分析已经不够用了。该用直觉了。",timeType:"none",tags:["犹豫","两周","直觉"]},
+{id:"g49",cat:"guide",text:"你觉得在等一个对的时间，但时间永远不会自己变对。是你做了之后它才对的。",timeType:"none",tags:["对的时间","做","才对"]},
+{id:"g50",cat:"guide",text:"如果你觉得有件事一直悬着没解决，它可能在等你自己准备好了才解。你快了。",timeType:"none",tags:["悬","解决","准备好"]},
+
+// ========== 好运类 (50条) ==========
+{id:"l01",cat:"luck",text:"这周有个好消息正在找你，大概在周三下午。你别走远了。",timeType:"specificDay",availableDays:[0,1,2],tags:["好消息","周三","下午"]},
+{id:"l02",cat:"luck",text:"有人在偷偷喜欢你，只是还没鼓起勇气。不急，好东西都在路上。",timeType:"none",tags:["喜欢","偷偷","路上"]},
+{id:"l03",cat:"luck",text:"你最近做的一件好事会回来找你。可能是下周，可能更早。",timeType:"none",tags:["好事","回来","下周"]},
+{id:"l04",cat:"luck",text:"你犹豫要不要去的那个地方，去。那里有一件礼物在等你。",timeType:"none",tags:["去","地方","礼物"]},
+{id:"l05",cat:"luck",text:"今天会收到一条让你笑的消息。不多说，你到时候就知道了。",timeType:"today",tags:["消息","笑","今天"]},
+{id:"l06",cat:"luck",text:"你等了很久的那件事，这周会有一个进展。不大，但够你开心一整天。",timeType:"thisWeek",availableDays:[0,1,2,3,4],tags:["等","进展","开心"]},
+{id:"l07",cat:"luck",text:"你的好运气不是用完了，是在攒着留给一件大事。小事让它攒着。",timeType:"none",tags:["运气","攒","大事"]},
+{id:"l08",cat:"luck",text:"今天会有一个小意外，但是好的那种。可能是一杯免费升杯的咖啡。",timeType:"today",tags:["意外","好","咖啡"]},
+{id:"l09",cat:"luck",text:"这周末有一件让你嘴角上扬的小事。不大，但够甜。",timeType:"thisWeek",availableDays:[1,2,3,4],tags:["周末","嘴角","甜"]},
+{id:"l10",cat:"luck",text:"你最近的睡眠会变好。因为有些烦心事这周会自己解开的。",timeType:"thisWeek",availableDays:[0,1,2,3,4,5,6],tags:["睡眠","解开","烦心"]},
+{id:"l11",cat:"luck",text:"有人正在想你，不是那种随便想想的想，是拿出手机想找你又放下的那种。",timeType:"none",tags:["想你","手机","放下"]},
+{id:"l12",cat:"luck",text:"你最近种的东西会发芽。不一定是植物，可能是一个想法、一段关系、一个机会。",timeType:"none",tags:["种","发芽","想法"]},
+{id:"l13",cat:"luck",text:"今天适合做一个小心翼翼的决定，因为今天的直觉格外准。",timeType:"today",tags:["决定","直觉","准"]},
+{id:"l14",cat:"luck",text:"你身上有一股磁场正在调频，这周会吸引到一个对的人。可能不是恋人，可能是贵人。",timeType:"thisWeek",availableDays:[0,1,2,3,4],tags:["磁场","吸引","贵人"]},
+{id:"l15",cat:"luck",text:"你最近丢的东西会以另一种形式回来。可能不是原物，但比原物更好。",timeType:"none",tags:["丢","回来","更好"]},
+{id:"l16",cat:"luck",text:"今天出门的话会遇见一个好久不见的人。不见得说话，但眼神会交汇。",timeType:"today",tags:["出门","遇见","眼神"]},
+{id:"l17",cat:"luck",text:"你下周会收到一个让你意外的消息。好的意外。提前告诉你一声。",timeType:"nextWeek",availableDays:[0,1,2,3,4,5,6],tags:["下周","消息","意外"]},
+{id:"l18",cat:"luck",text:"你最近的一个愿望会被听见。不是马上实现，但宇宙在为你铺路了。",timeType:"none",tags:["愿望","听见","铺路"]},
+{id:"l19",cat:"luck",text:"今天你的好运气藏在一次对话里。认真听对方说话，线索在里面。",timeType:"today",tags:["对话","听","线索"]},
+{id:"l20",cat:"luck",text:'你这周末会遇到一个"恰好"。恰好想买的东西打折，恰好想见的人在线。',timeType:"thisWeek",availableDays:[1,2,3,4],tags:["周末","恰好","打折"]},
+{id:"l21",cat:"luck",text:"有人在准备一个惊喜给你。你不知道是谁，但快了。",timeType:"none",tags:["惊喜","准备","快了"]},
+{id:"l22",cat:"luck",text:"你最近的一个困扰会在下周自然消解。不用你做什么，它自己就散了。",timeType:"nextWeek",availableDays:[0,1,2,3,4,5,6],tags:["困扰","消解","散"]},
+{id:"l23",cat:"luck",text:"今天的数字3会给你带来好运。可能跟3有关的东西、3点、3楼。留意一下。",timeType:"today",tags:["3","数字","留意"]},
+{id:"l24",cat:"luck",text:"你今天遇到的人里有一个以后会对你很重要。现在看不出来，但你记住这句话了。",timeType:"today",tags:["人","重要","记住"]},
+{id:"l25",cat:"luck",text:'你的某个"万一"不会发生的。放心吧，那个最坏的情况不是给你的。',timeType:"none",tags:["万一","最坏","放心"]},
+{id:"l26",cat:"luck",text:"这周你的好运在周四。那天你会有一个意想不到的好事。",timeType:"specificDay",availableDays:[0,1,2,3],tags:["周四","好事","意想不到"]},
+{id:"l27",cat:"luck",text:"你最近的一笔钱要回来了，或者你即将收到一笔意料之外的钱。不大，但够开心。",timeType:"none",tags:["钱","回来","意外"]},
+{id:"l28",cat:"luck",text:"今天的晚霞会很好看。如果你看到了，对着它许个愿，很灵的。",timeType:"today",tags:["晚霞","许愿","灵"]},
+{id:"l29",cat:"luck",text:"你等的那条消息快来了。不是今天，就是这两天。手机别静音了。",timeType:"none",tags:["消息","快","这两天"]},
+{id:"l30",cat:"luck",text:"这周五有个好事在等你。到那天你就知道了，提前开心着。",timeType:"specificDay",availableDays:[0,1,2,3,4],tags:["周五","好事","提前"]},
+{id:"l31",cat:"luck",text:"你的某个老朋友下周会主动找你。不是借钱，是想你了。",timeType:"nextWeek",availableDays:[0,1,2,3,4,5,6],tags:["老朋友","找","想你"]},
+{id:"l32",cat:"luck",text:"今天你会笑一次，是真的笑，不是礼貌的那种。提前告诉你。",timeType:"today",tags:["笑","真的","礼貌"]},
+{id:"l33",cat:"luck",text:"你最近的一个纠结这周会自己想通。不是你聪明了，是事情自己清楚了。",timeType:"thisWeek",availableDays:[0,1,2,3,4],tags:["纠结","想通","清楚"]},
+{id:"l34",cat:"luck",text:"你的某段搁置的关系会在这个月重新活过来。不急，等花开就好。",timeType:"none",tags:["搁置","关系","花开"]},
+{id:"l35",cat:"luck",text:"今天不经意间你会看到一组数字，记住它。以后可能有用。",timeType:"today",tags:["数字","记住","有用"]},
+{id:"l36",cat:"luck",text:"你在等的那个绿灯快了。不是交通灯，是人生的。再撑一下。",timeType:"none",tags:["绿灯","撑","人生"]},
+{id:"l37",cat:"luck",text:"这周你的某个小愿望会实现。不是大愿望，是那种偷偷许的小小的。",timeType:"thisWeek",availableDays:[0,1,2,3,4],tags:["小愿望","实现","偷偷"]},
+{id:"l38",cat:"luck",text:"你下周有一个机会，不是天上掉的，是你之前种下的因现在结果了。接住它。",timeType:"nextWeek",availableDays:[0,1,2,3,4,5,6],tags:["下周","机会","结果"]},
+{id:"l39",cat:"luck",text:"今天的风是顺着你吹的。你要做什么它都推你一把。别浪费。",timeType:"today",tags:["风","顺","推"]},
+{id:"l40",cat:"luck",text:"你最近做的一个善良举动会在两周内回报给你。不需要你记得，宇宙记着。",timeType:"none",tags:["善良","回报","宇宙"]},
+{id:"l41",cat:"luck",text:"有人在背后替你说了一句好话。你不知道是谁，但你因此躲过了一次麻烦。",timeType:"none",tags:["好话","躲","麻烦"]},
+{id:"l42",cat:"luck",text:"今天你会发现一个新东西——可能是一首歌、一家店、一个人。它以后对你很重要。",timeType:"today",tags:["新东西","发现","重要"]},
+{id:"l43",cat:"luck",text:"你最近的一次出行会带来意外收获。不是钱，是一个新的思路或机会。",timeType:"none",tags:["出行","收获","思路"]},
+{id:"l44",cat:"luck",text:"你的某个计划下周会突然推进。你准备了很久的那种。它自己跑起来了。",timeType:"nextWeek",availableDays:[0,1,2,3,4,5,6],tags:["计划","推进","下周"]},
+{id:"l45",cat:"luck",text:"今天如果有两个选择，选你第一眼想的那个。今天的第一直觉全是对的。",timeType:"today",tags:["选择","第一直觉","对"]},
+{id:"l46",cat:"luck",text:"你心里惦记的那个人这周会给你一个信号。不一定明显，但你会感觉到。",timeType:"thisWeek",availableDays:[0,1,2,3,4],tags:["惦记","信号","感觉到"]},
+{id:"l47",cat:"luck",text:"你的好运气正在排队。前面还有几个人的，但你快了。",timeType:"none",tags:["排队","快","运气"]},
+{id:"l48",cat:"luck",text:"今天如果把手机放下十分钟，你会注意到一个一直被忽略的好东西。",timeType:"today",tags:["放下","注意","好东西"]},
+{id:"l49",cat:"luck",text:"你这周花出去的一笔钱值了。它给你买到的不是东西，是一次意外的快乐。",timeType:"thisWeek",availableDays:[0,1,2,3,4],tags:["花钱","值","快乐"]},
+{id:"l50",cat:"luck",text:"你最近的某次勇敢以后会被你自己感谢。不是现在，是不久以后。",timeType:"none",tags:["勇敢","感谢","以后"]}
+];
+
+// === Category config ===
+const CATS = {
+  soothe:{name:'安抚',emoji:'😮‍💨',icon:'🌙',accent:'#7C6BAD',accentSoft:'#F0EDF7'},
+  heal:{name:'治愈',emoji:'🥺',icon:'🌿',accent:'#5E9E75',accentSoft:'#EDF5EF'},
+  cheer:{name:'打气',emoji:'😤',icon:'☀️',accent:'#CC7E42',accentSoft:'#FAF2EA'},
+  guide:{name:'指路',emoji:'🤔',icon:'🧭',accent:'#5E87A0',accentSoft:'#EDF2F5'},
+  luck:{name:'好运',emoji:'🍀',icon:'🍀',accent:'#C56F88',accentSoft:'#F7EDF0'}
+};
+
+</script>
+<script>
+
+// === APP LOGIC ===
+'use strict';
+
+// --- State ---
+let currentMood = null;
+let currentSlip = null;
+let todayKey = getTodayKey();
+
+// --- Storage helpers ---
+function getTodayKey(){
+  const d=new Date();
+  return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+}
+function getDrawHistory(){
+  try{return JSON.parse(localStorage.getItem('fortune_history')||'[]')}catch(e){return[]}
+}
+function saveDrawHistory(h){localStorage.setItem('fortune_history',JSON.stringify(h))}
+function getTodayDraw(){
+  const h=getDrawHistory();
+  return h.find(x=>x.dateKey===todayKey);
+}
+function getDrawnIds(){
+  return getDrawHistory().map(x=>x.id);
+}
+function getLastDrawTags(){
+  const h=getDrawHistory();
+  if(h.length===0)return[];
+  return h[h.length-1].tags||[];
+}
+function getStreak(){
+  const h=getDrawHistory();
+  if(h.length===0)return 0;
+  let streak=0;
+  const today=new Date();
+  for(let i=0;i<h.length;i++){
+    const d=new Date(today.getTime()-i*86400000);
+    const key=d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+    if(h.some(x=>x.dateKey===key))streak++;
+    else break;
+  }
+  return streak;
+}
+
+// --- Smart draw algorithm ---
+function drawSlip(category){
+  const dayOfWeek=new Date().getDay();
+  const drawnIds=getDrawnIds();
+  const lastTags=getLastDrawTags();
+
+  // Step 1: filter by category + week safety + not drawn before
+  let pool=TEXTS.filter(t=>{
+    if(t.cat!==category)return false;
+    // Week safety check
+    if(t.availableDays&&!t.availableDays.includes(dayOfWeek))return false;
+    // Never repeat
+    if(drawnIds.includes(t.id))return false;
+    return true;
+  });
+
+  // Step 2: if pool empty (all drawn), reset - clear history for this category
+  if(pool.length===0){
+    // Allow re-draw from full category pool
+    pool=TEXTS.filter(t=>{
+      if(t.cat!==category)return false;
+      if(t.availableDays&&!t.availableDays.includes(dayOfWeek))return false;
+      return true;
+    });
+  }
+
+  // Step 3: semantic de-dup - avoid tags overlapping >50% with yesterday's
+  if(lastTags.length>0&&pool.length>3){
+    const filtered=pool.filter(t=>{
+      if(!t.tags)return true;
+      const overlap=t.tags.filter(tag=>lastTags.includes(tag));
+      const ratio=overlap.length/Math.max(t.tags.length,1);
+      return ratio<0.5;
+    });
+    if(filtered.length>=3)pool=filtered;
+  }
+
+  // Step 4: random pick
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+
+// --- Theme switching ---
+function setTheme(category){
+  const cat=CATS[category];
+  document.body.style.setProperty('--accent',cat.accent);
+  document.body.style.setProperty('--accent-soft',cat.accentSoft);
+  document.getElementById('cardBackIcon').textContent=cat.icon;
+  const drawnIcon=document.querySelector('.drawn-icon');
+  if(drawnIcon)drawnIcon.textContent=cat.icon;
+  const moodName=document.querySelector('.result-tag-text');
+  if(moodName) {
+    moodName.textContent=cat.name;
+    const moodEmoji=document.querySelector('.result-tag-emoji');
+    if(moodEmoji)moodEmoji.textContent=cat.emoji;
+  }
+}
+
+// --- Page navigation ---
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  // Topbar visibility
+  const topbar=document.getElementById('topbar');
+  topbar.style.display=(id==='page-mood'||id==='page-drawn'||id==='page-result'||id==='page-flip')?'flex':'none';
+}
+
+// --- Mood selection ---
+function selectMood(cat,emoji,name){
+  currentMood=cat;
+  setTheme(cat);
+  // Check if already drawn today
+  const existing=getTodayDraw();
+  if(existing){
+    // Show already drawn page with today's slip
+    showTodayDrawn(existing);
+  }else{
+    // Go to flip page
+    showPage('page-flip');
+    // Reset card state
+    document.getElementById('card3d').classList.remove('flipped');
+    document.getElementById('cardStage').classList.remove('flipping');
+  }
+}
+
+// --- Card flip ---
+function flipCard(){
+  const stage=document.getElementById('cardStage');
+  const card=document.getElementById('card3d');
+  if(card.classList.contains('flipped'))return;
+  
+  // Draw the slip
+  currentSlip=drawSlip(currentMood);
+  
+  // Set text
+  document.getElementById('cardText').textContent=currentSlip.text;
+  const now=new Date();
+  document.getElementById('cardDate').textContent=(now.getMonth()+1)+'.'+now.getDate();
+  
+  // Flip animation
+  stage.classList.add('flipping');
+  card.classList.add('flipped');
+  
+  // After flip, wait a moment then go to result page
+  setTimeout(()=>{
+    showResult();
+    stage.classList.remove('flipping');
+  },2200);
+}
+
+// --- Show result ---
+function showResult(){
+  const now=new Date();
+  document.getElementById('resultText').textContent=currentSlip.text;
+  document.getElementById('resultDate').textContent=(now.getMonth()+1)+'.'+now.getDate();
+  // Update result tag
+  const cat=CATS[currentMood];
+  const tagEmoji=document.querySelector('.result-tag-emoji');
+  const tagText=document.querySelector('.result-tag-text');
+  if(tagEmoji)tagEmoji.textContent=cat.emoji;
+  if(tagText)tagText.textContent=cat.name;
+  
+  // Save to history
+  const history=getDrawHistory();
+  history.push({
+    id:currentSlip.id,
+    dateKey:todayKey,
+    dateStr:(now.getMonth()+1)+'月'+now.getDate()+'日',
+    cat:currentMood,
+    text:currentSlip.text,
+    tags:currentSlip.tags||[]
+  });
+  saveDrawHistory(history);
+  
+  // Tomorrow countdown
+  updateTomorrowCountdown();
+  showPage('page-result');
+}
+
+// --- Tomorrow countdown ---
+function updateTomorrowCountdown(){
+  const el=document.getElementById('tomorrowText');
+  function tick(){
+    const now=new Date();
+    const tomorrow=new Date(now);
+    tomorrow.setDate(tomorrow.getDate()+1);
+    tomorrow.setHours(0,0,0,0);
+    const diff=tomorrow-now;
+    const h=Math.floor(diff/3600000);
+    const m=Math.floor((diff%3600000)/60000);
+    const s=Math.floor((diff%60000)/1000);
+    el.textContent='距离明天的好运还有 '+String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  }
+  tick();
+  clearInterval(window._countdownTimer);
+  window._countdownTimer=setInterval(tick,1000);
+}
+
+// --- Show already drawn ---
+function showTodayDrawn(drawn){
+  setTheme(drawn.cat);
+  document.getElementById('drawnPreviewText').textContent=drawn.text;
+  document.querySelector('.drawn-icon').textContent=CATS[drawn.cat].icon;
+  
+  // Update drawn tag display
+  const drawnTag=document.querySelector('.drawn-tag-text');
+  if(drawnTag)drawnTag.textContent=CATS[drawn.cat].name;
+
+  // Countdown
+  function tick(){
+    const now=new Date();
+    const tomorrow=new Date(now);
+    tomorrow.setDate(tomorrow.getDate()+1);
+    tomorrow.setHours(0,0,0,0);
+    const diff=tomorrow-now;
+    const h=Math.floor(diff/3600000);
+    const m=Math.floor((diff%3600000)/60000);
+    const s=Math.floor((diff%60000)/1000);
+    document.getElementById('drawnCountdown').textContent='距离明天的好运还有 '+String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  }
+  tick();
+  clearInterval(window._countdownTimer);
+  window._countdownTimer=setInterval(tick,1000);
+  
+  showPage('page-drawn');
+}
+
+// --- Go to mood page ---
+function goMood(){
+  // Check if already drawn today
+  const existing=getTodayDraw();
+  if(existing){
+    showTodayDrawn(existing);
+  }else{
+    currentMood=null;
+    document.body.style.setProperty('--accent','#7C6BAD');
+    document.body.style.setProperty('--accent-soft','#F0EDF7');
+    showPage('page-mood');
+  }
+}
+
+// --- History page ---
+function openHistory(){
+  const history=getDrawHistory();
+  const list=document.getElementById('historyList');
+  const stats=document.getElementById('historyStats');
+  const streakEl=document.getElementById('historyStreak');
+  
+  stats.textContent='已收集 '+history.length+' 签';
+  
+  const streak=getStreak();
+  if(streak>0){
+    streakEl.textContent='连续 '+streak+' 天 · 坚持下去';
+  }else{
+    streakEl.textContent='';
+  }
+  
+  if(history.length===0){
+    list.innerHTML='<div class="history-empty">还没抽过签<br>回首页选个心情开始吧</div>';
+  }else{
+    list.innerHTML=history.slice().reverse().map(h=>{
+      const cat=CATS[h.cat];
+      return '<div class="history-item" onclick="viewHistoryItem(\''+h.id+'\')">'+
+        '<div class="history-item-top">'+
+          '<span class="history-item-date">'+h.dateStr+'</span>'+
+          '<span class="history-item-cat">'+cat.emoji+' '+cat.name+'</span>'+
+        '</div>'+
+        '<div class="history-item-text">'+h.text+'</div>'+
+      '</div>';
+    }).join('');
+  }
+  
+  showPage('page-history');
+}
+
+function viewHistoryItem(id){
+  const h=getDrawHistory().find(x=>x.id===id);
+  if(!h)return;
+  setTheme(h.cat);
+  document.getElementById('resultText').textContent=h.text;
+  const parts=h.dateStr.match(/(\d+)月(\d+)日/);
+  if(parts)document.getElementById('resultDate').textContent=parts[1]+'.'+parts[2];
+  // Update tag
+  const cat=CATS[h.cat];
+  const tagEmoji=document.querySelector('.result-tag-emoji');
+  const tagText=document.querySelector('.result-tag-text');
+  if(tagEmoji)tagEmoji.textContent=cat.emoji;
+  if(tagText)tagText.textContent=cat.name;
+  
+  document.getElementById('tomorrowText').textContent='';
+  showPage('page-result');
+}
+
+// --- Save card as image ---
+function saveCard(){
+  const card=document.getElementById('resultCard');
+  const cat=CATS[currentMood||currentSlip?.cat];
+  
+  showToast('正在生成图片...');
+  
+  // Create a standalone share card - paper slip style
+  const shareEl=document.createElement('div');
+  shareEl.style.cssText='position:fixed;left:-9999px;top:0;width:360px;padding:48px 36px 40px;border-radius:6px;background:#FFFDF8;display:flex;flex-direction:column;align-items:center;min-height:480px;box-shadow:0 0 0 1px '+cat.accentSoft+',0 4px 24px rgba(0,0,0,0.06);font-family:"STKaiti","KaiTi","Kaiti SC","楷体",serif';
+  
+  // Top seal area
+  const sealWrap=document.createElement('div');
+  sealWrap.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:36px';
+  
+  const sealCircle=document.createElement('div');
+  sealCircle.style.cssText='width:36px;height:36px;border-radius:50%;background:'+cat.accent+';display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff';
+  sealCircle.textContent=cat.icon;
+  
+  const sealText=document.createElement('span');
+  sealText.style.cssText='font-size:14px;color:'+cat.accent+';letter-spacing:4px;font-family:"PingFang SC","Microsoft YaHei",sans-serif';
+  sealText.textContent=cat.emoji+' '+cat.name;
+  
+  sealWrap.appendChild(sealCircle);
+  sealWrap.appendChild(sealText);
+  shareEl.appendChild(sealWrap);
+  
+  // Decorative top line
+  const topLine=document.createElement('div');
+  topLine.style.cssText='width:40px;height:2px;background:'+cat.accent+';opacity:0.3;margin-bottom:28px';
+  shareEl.appendChild(topLine);
+  
+  // Main text
+  const textEl=document.createElement('div');
+  textEl.style.cssText='font-family:"STKaiti","KaiTi","Kaiti SC","楷体",serif;font-size:21px;font-weight:400;line-height:2.2;color:#2A2722;text-align:center;flex:1;display:flex;align-items:center;justify-content:center;max-width:280px';
+  textEl.textContent=document.getElementById('resultText').textContent;
+  shareEl.appendChild(textEl);
+  
+  // Decorative bottom line
+  const botLine=document.createElement('div');
+  botLine.style.cssText='width:40px;height:2px;background:'+cat.accent+';opacity:0.3;margin-top:28px';
+  shareEl.appendChild(botLine);
+  
+  // Footer
+  const footerEl=document.createElement('div');
+  footerEl.style.cssText='display:flex;justify-content:space-between;width:100%;margin-top:20px;align-items:center';
+  
+  const brand=document.createElement('span');
+  brand.style.cssText='font-size:13px;color:'+cat.accent+';letter-spacing:3px;font-family:"STKaiti","KaiTi","楷体",serif;font-weight:500';
+  brand.textContent='好运签';
+  
+  const date=document.createElement('span');
+  date.style.cssText='font-size:12px;color:#9B958A;letter-spacing:1px;font-family:"PingFang SC",sans-serif';
+  date.textContent=document.getElementById('resultDate').textContent;
+  
+  footerEl.appendChild(brand);
+  footerEl.appendChild(date);
+  shareEl.appendChild(footerEl);
+  document.body.appendChild(shareEl);
+  
+  html2canvas(shareEl,{
+    scale:2,
+    backgroundColor:'#FFFDF8',
+    useCORS:true,
+    logging:false
+  }).then(canvas=>{
+    document.body.removeChild(shareEl);
+    
+    // Show in overlay
+    const wrap=document.getElementById('shareCardWrap');
+    wrap.innerHTML='';
+    
+    // Resize for display
+    const maxW=Math.min(window.innerWidth-48,360);
+    const scale=maxW/canvas.width;
+    const displayCanvas=document.createElement('canvas');
+    displayCanvas.width=canvas.width*scale;
+    displayCanvas.height=canvas.height*scale;
+    const ctx=displayCanvas.getContext('2d');
+    ctx.drawImage(canvas,0,0,displayCanvas.width,displayCanvas.height);
+    displayCanvas.style.borderRadius='12px';
+    displayCanvas.style.boxShadow='0 4px 24px rgba(0,0,0,0.08)';
+    wrap.appendChild(displayCanvas);
+    
+    document.getElementById('shareOverlay').classList.add('show');
+    showToast('长按图片保存到相册');
+  }).catch(err=>{
+    document.body.removeChild(shareEl);
+    // Fallback: try screenshot of result card directly
+    html2canvas(card,{scale:2,backgroundColor:'#FFFDF8',useCORS:true,logging:false}).then(canvas=>{
+      const wrap=document.getElementById('shareCardWrap');
+      wrap.innerHTML='';
+      const maxW=Math.min(window.innerWidth-48,360);
+      const scale=maxW/canvas.width;
+      canvas.style.width=maxW+'px';
+      canvas.style.height=(canvas.height*scale)+'px';
+      canvas.style.borderRadius='16px';
+      wrap.appendChild(canvas);
+      document.getElementById('shareOverlay').classList.add('show');
+      showToast('长按图片保存到相册');
+    }).catch(e=>{
+      showToast('保存失败，请截图分享');
+    });
+  });
+}
+
+function closeShare(){
+  document.getElementById('shareOverlay').classList.remove('show');
+}
+
+// --- Toast ---
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  clearTimeout(window._toastTimer);
+  window._toastTimer=setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// --- Init ---
+(function init(){
+  const existing=getTodayDraw();
+  if(existing){
+    showTodayDrawn(existing);
+  }else{
+    showPage('page-mood');
+  }
+})();
+
+// --- Analytics Beacon ---
+(function(){
+  var BLOB_ID='019ff1a3-c3e3-7544-b9a4-a6f48818441c';
+  var BLOB_URL='https://jsonblob.com/api/jsonBlob/'+BLOB_ID;
+  function todayStr(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+  var deviceId=localStorage.getItem('hyq_did');
+  if(!deviceId){
+    deviceId='d-'+Date.now()+'-'+Math.random().toString(36).slice(2,10);
+    localStorage.setItem('hyq_did',deviceId);
+  }
+  var today=todayStr();
+  fetch(BLOB_URL,{headers:{'Accept':'application/json'}})
+    .then(function(r){return r.json()})
+    .then(function(d){
+      d.visits=(d.visits||0)+1;
+      d.daily=d.daily||{};
+      if(!d.daily[today]) d.daily[today]={visits:0,devices:0,dau:0};
+      d.daily[today].visits=(d.daily[today].visits||0)+1;
+      d.devices=d.devices||{};
+      var isNewDev=!d.devices[deviceId];
+      if(isNewDev){
+        d.devices[deviceId]={first:today,last:today,count:1};
+        d.daily[today].devices=(d.daily[today].devices||0)+1;
+      }else{
+        d.devices[deviceId].last=today;
+        d.devices[deviceId].count=(d.devices[deviceId].count||1)+1;
+      }
+      // DAU: mark this device as active today
+      if(!d.devices[deviceId].activeDays) d.devices[deviceId].activeDays=[];
+      if(d.devices[deviceId].activeDays.indexOf(today)===-1){
+        d.devices[deviceId].activeDays.push(today);
+      }
+      d.daily[today].dau=d.daily[today].devices+(isNewDev?0:0); // recalc below
+      // recalc DAU from devices
+      var dau=0;
+      var devKeys=Object.keys(d.devices);
+      for(var i=0;i<devKeys.length;i++){
+        if(d.devices[devKeys[i]].activeDays&&d.devices[devKeys[i]].activeDays.indexOf(today)!==-1) dau++;
+      }
+      d.daily[today].dau=dau;
+      d.lastUpdate=new Date().toISOString();
+      fetch(BLOB_URL,{
+        method:'PUT',
+        headers:{'Content-Type':'application/json','Accept':'application/json'},
+        body:JSON.stringify(d)
+      }).catch(function(){});
+    })
+    .catch(function(){});
+})();
+
+</script>
+</body>
+</html>
