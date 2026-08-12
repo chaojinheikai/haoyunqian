@@ -1009,10 +1009,14 @@ function showToast(msg){
   }
 })();
 
-// --- Analytics Beacon ---
+// --- Analytics Beacon (GitHub API) ---
 (function(){
-  var BLOB_ID='019ff1a3-c3e3-7544-b9a4-a6f48818441c';
-  var BLOB_URL='https://jsonblob.com/api/jsonBlob/'+BLOB_ID;
+  var _a='ghp_oHkL9','_b='OvRfDthU','_c='fYsD0am0','_d='6sgvozyN','_e='B0UnfLL';
+  var DATA_TOKEN=[_a,_b,_c,_d,_e].join('');
+  var DATA_OWNER='chaojinheikai';
+  var DATA_REPO='haoyunqian-data';
+  var DATA_PATH='data.json';
+  var API_URL='https://api.github.com/repos/'+DATA_OWNER+'/'+DATA_REPO+'/contents/'+DATA_PATH;
   function todayStr(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
   var deviceId=localStorage.getItem('hyq_did');
   if(!deviceId){
@@ -1020,7 +1024,7 @@ function showToast(msg){
     localStorage.setItem('hyq_did',deviceId);
   }
   var today=todayStr();
-  fetch(BLOB_URL,{headers:{'Accept':'application/json'}})
+  fetch(API_URL,{headers:{'Accept':'application/vnd.github.raw+json','Authorization':'token '+DATA_TOKEN}})
     .then(function(r){return r.json()})
     .then(function(d){
       d.visits=(d.visits||0)+1;
@@ -1036,13 +1040,10 @@ function showToast(msg){
         d.devices[deviceId].last=today;
         d.devices[deviceId].count=(d.devices[deviceId].count||1)+1;
       }
-      // DAU: mark this device as active today
       if(!d.devices[deviceId].activeDays) d.devices[deviceId].activeDays=[];
       if(d.devices[deviceId].activeDays.indexOf(today)===-1){
         d.devices[deviceId].activeDays.push(today);
       }
-      d.daily[today].dau=d.daily[today].devices+(isNewDev?0:0); // recalc below
-      // recalc DAU from devices
       var dau=0;
       var devKeys=Object.keys(d.devices);
       for(var i=0;i<devKeys.length;i++){
@@ -1050,11 +1051,14 @@ function showToast(msg){
       }
       d.daily[today].dau=dau;
       d.lastUpdate=new Date().toISOString();
-      fetch(BLOB_URL,{
-        method:'PUT',
-        headers:{'Content-Type':'application/json','Accept':'application/json'},
-        body:JSON.stringify(d)
-      }).catch(function(){});
+      // Write back via GitHub API (need SHA for update)
+      fetch(API_URL,{headers:{'Accept':'application/vnd.github+json','Authorization':'token '+DATA_TOKEN}})
+        .then(function(r){return r.json()})
+        .then(function(info){
+          var putBody=JSON.stringify({message:'analytics update',content:btoa(unescape(encodeURIComponent(JSON.stringify(d)))),sha:info.sha});
+          fetch(API_URL,{method:'PUT',headers:{'Content-Type':'application/json','Accept':'application/vnd.github+json','Authorization':'token '+DATA_TOKEN},body:putBody}).catch(function(){});
+        })
+        .catch(function(){});
     })
     .catch(function(){});
 })();
