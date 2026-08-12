@@ -1009,58 +1009,10 @@ function showToast(msg){
   }
 })();
 
-// --- Analytics Beacon (GitHub API) ---
+// --- Analytics Beacon (temporarily disabled, pending LeanCloud integration) ---
 (function(){
-  var _a='ghp_oHkL9','_b='OvRfDthU','_c='fYsD0am0','_d='6sgvozyN','_e='B0UnfLL';
-  var DATA_TOKEN=[_a,_b,_c,_d,_e].join('');
-  var DATA_OWNER='chaojinheikai';
-  var DATA_REPO='haoyunqian-data';
-  var DATA_PATH='data.json';
-  var API_URL='https://api.github.com/repos/'+DATA_OWNER+'/'+DATA_REPO+'/contents/'+DATA_PATH;
-  function todayStr(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
-  var deviceId=localStorage.getItem('hyq_did');
-  if(!deviceId){
-    deviceId='d-'+Date.now()+'-'+Math.random().toString(36).slice(2,10);
-    localStorage.setItem('hyq_did',deviceId);
-  }
-  var today=todayStr();
-  fetch(API_URL,{headers:{'Accept':'application/vnd.github.raw+json','Authorization':'token '+DATA_TOKEN}})
-    .then(function(r){return r.json()})
-    .then(function(d){
-      d.visits=(d.visits||0)+1;
-      d.daily=d.daily||{};
-      if(!d.daily[today]) d.daily[today]={visits:0,devices:0,dau:0};
-      d.daily[today].visits=(d.daily[today].visits||0)+1;
-      d.devices=d.devices||{};
-      var isNewDev=!d.devices[deviceId];
-      if(isNewDev){
-        d.devices[deviceId]={first:today,last:today,count:1};
-        d.daily[today].devices=(d.daily[today].devices||0)+1;
-      }else{
-        d.devices[deviceId].last=today;
-        d.devices[deviceId].count=(d.devices[deviceId].count||1)+1;
-      }
-      if(!d.devices[deviceId].activeDays) d.devices[deviceId].activeDays=[];
-      if(d.devices[deviceId].activeDays.indexOf(today)===-1){
-        d.devices[deviceId].activeDays.push(today);
-      }
-      var dau=0;
-      var devKeys=Object.keys(d.devices);
-      for(var i=0;i<devKeys.length;i++){
-        if(d.devices[devKeys[i]].activeDays&&d.devices[devKeys[i]].activeDays.indexOf(today)!==-1) dau++;
-      }
-      d.daily[today].dau=dau;
-      d.lastUpdate=new Date().toISOString();
-      // Write back via GitHub API (need SHA for update)
-      fetch(API_URL,{headers:{'Accept':'application/vnd.github+json','Authorization':'token '+DATA_TOKEN}})
-        .then(function(r){return r.json()})
-        .then(function(info){
-          var putBody=JSON.stringify({message:'analytics update',content:btoa(unescape(encodeURIComponent(JSON.stringify(d)))),sha:info.sha});
-          fetch(API_URL,{method:'PUT',headers:{'Content-Type':'application/json','Accept':'application/vnd.github+json','Authorization':'token '+DATA_TOKEN},body:putBody}).catch(function(){});
-        })
-        .catch(function(){});
-    })
-    .catch(function(){});
+  // Data tracking will be re-enabled after switching to LeanCloud
+  // which supports CORS and is accessible in China
 })();
 
 </script>
